@@ -42,7 +42,7 @@ Total = Nominal - Admin</p>
       <th>Nominal</th>
       <th>Admin</th>
       <th>Total</th>
-      <th>Keterangan</th>
+      <th>Aksi</th>
     </tr>
   </thead>
   <tbody id="tabelData"></tbody>
@@ -62,12 +62,11 @@ Total = Nominal - Admin</p>
   const sumAdminEl = document.getElementById('sumAdmin');
   const sumTotalEl = document.getElementById('sumTotal');
 
-  // Set tanggal otomatis saat halaman dibuka
-document.getElementById('tgl').valueAsDate = new Date();
-
+  document.getElementById('tgl').valueAsDate = new Date();
 
   let data = JSON.parse(localStorage.getItem('tarikData')) || [];
   let no = data.length > 0 ? data[data.length - 1].No + 1 : 1;
+  let editIndex = -1;
 
   document.getElementById('admin').addEventListener('input', updateTotal);
   document.getElementById('nominal').addEventListener('input', updateTotal);
@@ -84,10 +83,24 @@ document.getElementById('tgl').valueAsDate = new Date();
     const nominal = parseInt(document.getElementById('nominal').value);
     const admin = parseInt(document.getElementById('admin').value);
     const total = nominal - admin;
-
     const ket = document.getElementById('keterangan').value;
-    const row = { No: no++, Tanggal: tgl, Nominal: nominal, Admin: admin, Total: total, Keterangan: ket };
-    data.push(row);
+
+    if (editIndex === -1) {
+      const row = { No: no++, Tanggal: tgl, Nominal: nominal, Admin: admin, Total: total, Keterangan: ket };
+      data.push(row);
+    } else {
+      data[editIndex] = {
+        ...data[editIndex],
+        Tanggal: tgl,
+        Nominal: nominal,
+        Admin: admin,
+        Total: total,
+        Keterangan: ket
+      };
+      editIndex = -1;
+      form.querySelector('button[type="submit"]').textContent = 'Tambah';
+    }
+
     localStorage.setItem('tarikData', JSON.stringify(data));
     tampilkanData();
     form.reset();
@@ -97,7 +110,7 @@ document.getElementById('tgl').valueAsDate = new Date();
   function tampilkanData() {
     tbody.innerHTML = '';
     let sumAdmin = 0, sumTotal = 0;
-    data.forEach(d => {
+    data.forEach((d, index) => {
       tbody.innerHTML += `
         <tr>
           <td>${d.No}</td>
@@ -106,14 +119,34 @@ document.getElementById('tgl').valueAsDate = new Date();
           <td>${d.Nominal}</td>
           <td>${d.Admin}</td>
           <td>${d.Total}</td>
-          <td>${d.Keterangan || ''}</td>
-        </tr>`;
+          <td>
+            <button onclick="editBaris(${index})">✏️ Edit</button>
+            <button onclick="hapusBaris(${index})" class="btn-danger">🗑️</button></td></td>
+          </tr>`;
       sumAdmin += d.Admin;
       sumTotal += d.Nominal;
     });
     sumAdminEl.textContent = sumAdmin;
     sumTotalEl.textContent = sumTotal;
   }
+
+  function editBaris(index) {
+    const d = data[index];
+    document.getElementById('tgl').value = d.Tanggal;
+    document.getElementById('keterangan').value = d.Keterangan || '';
+    document.getElementById('nominal').value = d.Nominal;
+    document.getElementById('admin').value = d.Admin;
+    document.getElementById('total').value = d.Total;
+    editIndex = index;
+    form.querySelector('button[type="submit"]').textContent = 'Update';
+  }
+function hapusBaris(index) {
+  if (confirm("Hapus data ini?")) {
+    data.splice(index, 1);
+    localStorage.setItem('tarikData', JSON.stringify(data));
+    tampilkanData(data);
+  }
+}
 
   function exportToExcel() {
     if (data.length === 0) return alert("Belum ada data!");
