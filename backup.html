@@ -32,7 +32,7 @@
   <h3>Penjualan Pulsa</h3>
   <table id="tablePulsa">
     <thead>
-      <tr><th>No</th><th>Tanggal</th><th>No HP</th><th>Denom</th><th>Harga Jual</th><th>Modal</th><th>Laba</th></tr>
+      <tr><th>No</th><th>Tanggal</th><th>No HP</th><th>Denom</th><th>VIA</th><th>Harga Jual</th><th>Modal</th><th>Laba</th></tr>
     </thead>
     <tbody></tbody>
   </table>
@@ -87,7 +87,7 @@ function loadData() {
   tbodyPulsa.innerHTML = '';
   dataPulsa.forEach(d => {
     tbodyPulsa.innerHTML += `<tr>
-      <td>${d.No}</td><td>${d.Tanggal}</td><td>${d["No HP"]}</td><td>${d.Denom}</td>
+      <td>${d.No}</td><td>${d.Tanggal}</td><td>${d["No HP"]}</td><td>${d.Denom}</td><td>${d["Via"]}</td>
       <td>${d["Harga Jual"]}</td><td>${d.Modal}</td><td>${d.Laba}</td>
     </tr>`;
   });
@@ -123,10 +123,10 @@ function exportSemuaData() {
   const dataTarik = JSON.parse(localStorage.getItem('tarikData')) || [];
 
   // Pulsa Sheet
-  const pulsaSheet = dataPulsa.map(d => [d.No, d.Tanggal, d["No HP"], d.Denom, d["Harga Jual"], d.Modal, d.Laba]);
+  const pulsaSheet = dataPulsa.map(d => [d.No, d.Tanggal, d["No HP"], d.Denom, d.Via, d["Harga Jual"], d.Modal, d.Laba]);
   const rowPulsa = pulsaSheet.length + 1;
-  pulsaSheet.unshift(["No", "Tanggal", "No HP", "Denom", "Harga Jual", "Modal", "Laba"]);
-  pulsaSheet.push(["Total", "", "", "", { f: `SUM(E2:E${rowPulsa})` }, "", { f: `SUM(G2:G${rowPulsa})` }]);
+  pulsaSheet.unshift(["No", "Tanggal", "No HP", "Denom","via", "Harga Jual", "Modal", "Laba"]);
+  pulsaSheet.push(["Total", "", "", "", "",{ f: `SUM(F2:F${rowPulsa})` }, "", { f: `SUM(H2:H${rowPulsa})` }]);
   const wsPulsa = XLSX.utils.aoa_to_sheet(pulsaSheet);
   XLSX.utils.book_append_sheet(wb, wsPulsa, 'Penjualan Pulsa');
 
@@ -146,7 +146,13 @@ function exportSemuaData() {
   const wsTarik = XLSX.utils.aoa_to_sheet(tarikSheet);
   XLSX.utils.book_append_sheet(wb, wsTarik, 'Tarik Tunai');
 
-  XLSX.writeFile(wb, 'Laporan_Transaksi_Gabungan.xlsx');
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  const filename = `Transaksi ADG(${yyyy}-${mm}-${dd}).xlsx`;
+
+  XLSX.writeFile(wb, filename);
 }
 
 window.onload = loadData;
