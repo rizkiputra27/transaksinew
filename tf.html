@@ -33,7 +33,7 @@
 </head>
 <body>
 
-<h2>Catatan Transaksi Transfer (TF) - Versi Lengkap</h2>
+<h2>Catatan Transaksi Transfer</h2>
 
 <form id="formTF">
   <input type="date" id="tgl" required>
@@ -41,14 +41,13 @@
 
   <select id="bank" required>
     <option value="" disabled selected>Pilih Bank</option>
-    <option value="BRI">BRI</option>
-    <option value="BCA">BCA</option>
-    <option value="BNI">BNI</option>
+    <option value="BRI">BRI/BRIVA</option>
+    <option value="BCA">BCA/BCAVA</option>
+    <option value="BNI">BNI/BNIVA</option>
     <option value="MANDIRI">MANDIRI</option>
     <option value="BTN">BTN</option>
-    <option value="DANA">DANA</option>
-    <option value="SHOOPEPAY">SHOOPEPAY</option>
-    <option value="GOPAY">GOPAY</option>
+    <option value="DANA">DANA/SHOOPEPAY/GOPAY/LINK AJA</option>
+    <option value="FINANCE">FINANCE</option>
     <option value="LAINNYA">Lainnya</option>
   </select>
 
@@ -72,6 +71,7 @@
       <th>Fee Admin</th>
       <th>Total</th>
       <th>Margin</th>
+      <th>Aksi</th>
     </tr>
   </thead>
   <tbody id="tabelData"></tbody>
@@ -104,12 +104,11 @@
   const totalTotalEl = document.getElementById('totalTotal');
   const totalMarginEl = document.getElementById('totalMargin');
 
-  // Set tanggal otomatis saat halaman dibuka
-document.getElementById('tgl').valueAsDate = new Date();
-
+  document.getElementById('tgl').valueAsDate = new Date();
 
   let data = JSON.parse(localStorage.getItem('tfData')) || [];
   let no = data.length > 0 ? data[data.length - 1].No + 1 : 1;
+  let editIndex = -1;
 
   function getAdminFee(bank, nominal) {
     nominal = parseInt(nominal);
@@ -157,8 +156,24 @@ document.getElementById('tgl').valueAsDate = new Date();
     const total = nominal + fee;
     const margin = total - nominal;
 
-    const row = { No: no++, Tanggal: tgl, "No HP": nohp, Bank: bank, Nominal: nominal, "Fee Admin": fee, Total: total, Margin: margin };
-    data.push(row);
+    if (editIndex === -1) {
+      const row = { No: no++, Tanggal: tgl, "No HP": nohp, Bank: bank, Nominal: nominal, "Fee Admin": fee, Total: total, Margin: margin };
+      data.push(row);
+    } else {
+      data[editIndex] = {
+        ...data[editIndex],
+        Tanggal: tgl,
+        "No HP": nohp,
+        Bank: bank,
+        Nominal: nominal,
+        "Fee Admin": fee,
+        Total: total,
+        Margin: margin
+      };
+      editIndex = -1;
+      form.querySelector('button[type="submit"]').textContent = 'Tambah';
+    }
+
     localStorage.setItem('tfData', JSON.stringify(data));
     tampilkanData(data);
     form.reset();
@@ -170,7 +185,7 @@ document.getElementById('tgl').valueAsDate = new Date();
   function tampilkanData(list) {
     tbody.innerHTML = '';
     let totalNominal = 0, totalFee = 0, totalTotal = 0, totalMargin = 0;
-    list.forEach(d => {
+    list.forEach((d, index) => {
       tbody.innerHTML += `
         <tr>
           <td>${d.No}</td>
@@ -181,6 +196,11 @@ document.getElementById('tgl').valueAsDate = new Date();
           <td>${d["Fee Admin"]}</td>
           <td>${d.Total}</td>
           <td>${d.Margin}</td>
+          <td>
+            <button onclick="editBaris(${index})">✏️ Edit</button>
+            <button onclick="hapusBaris(${index})" class="btn-danger">🗑️</button>
+          </td>
+          
         </tr>`;
       totalNominal += d.Nominal;
       totalFee += d["Fee Admin"];
@@ -192,6 +212,26 @@ document.getElementById('tgl').valueAsDate = new Date();
     totalTotalEl.textContent = totalTotal;
     totalMarginEl.textContent = totalMargin;
   }
+
+  function editBaris(index) {
+    const d = data[index];
+    document.getElementById('tgl').value = d.Tanggal;
+    document.getElementById('nohp').value = d["No HP"];
+    document.getElementById('bank').value = d.Bank;
+    document.getElementById('nominal').value = d.Nominal;
+    document.getElementById('feeAuto').value = d["Fee Admin"];
+    document.getElementById('totalAuto').value = d.Total;
+    document.getElementById('marginAuto').value = d.Margin;
+    editIndex = index;
+    form.querySelector('button[type="submit"]').textContent = 'Update';
+  }
+function hapusBaris(index) {
+  if (confirm("Hapus data ini?")) {
+    data.splice(index, 1);
+    localStorage.setItem('tfData', JSON.stringify(data));
+    tampilkanData(data);
+  }
+}
 
   function exportToExcel() {
     if (data.length === 0) return alert("Belum ada data untuk diekspor!");
