@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Form Input Servis</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f8f9fa;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    form, .filter-export {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      margin-bottom: 20px;
+    }
+    input, textarea, button, select {
+      width: 100%;
+      padding: 8px;
+      margin: 8px 0;
+      box-sizing: border-box;
+    }
+    table {
+      width: 100%;
+      margin-top: 30px;
+      border-collapse: collapse;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Form Input Servis</h2>
+    <form id="formServis">
+      <input type="date" id="tanggal" required>
+      <input type="text" id="tipehp" placeholder="Tipe HP" required>
+      <input type="text" id="kerusakan" placeholder="Kerusakan" required>
+      <select id="handle" required>
+        <option value="">-- Dibawa? --</option>
+        <option value="P. Adit">P. Adit</option>
+        <option value="Mas Davi">Mas Davi</option>
+        <option value="Mas Likan">Mas Likan</option>
+      </select>
+      <input type="number" id="harga" placeholder="Harga Servis">
+      <input type="text" id="nama" placeholder="Nama Pelanggan">
+      <button type="submit">Simpan</button>
+    </form>
+
+    <div class="filter-export">
+      <label for="filterTanggal">Filter Tanggal:</label>
+      <input type="date" id="filterTanggal">
+
+      <label for="filterHandle">Filter Handle:</label>
+      <select id="filterHandle">
+        <option value="">-- Semua --</option>
+        <option value="P. Adit">P. Adit</option>
+        <option value="Mas Davi">Mas Davi</option>
+        <option value="Mas Likan">Mas Likan</option>
+      </select>
+      <button onclick="exportToExcel()">Export ke Excel</button>
+    </div>
+
+    <h3>Data Servis</h3>
+    <table id="tabelServis">
+      <thead>
+        <tr>
+          <th>Tanggal</th>
+          <th>Tipe HP</th>
+          <th>Kerusakan</th>
+          <th>Handle</th>
+          <th>Harga</th>
+          <th>Nama Pelanggan</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    const form = document.getElementById('formServis');
+    const tbody = document.querySelector('#tabelServis tbody');
+
+    document.getElementById('tanggal').valueAsDate = new Date();
+
+    const loadData = () => {
+      const data = JSON.parse(localStorage.getItem('dataServis') || '[]');
+      const filterTanggal = document.getElementById('filterTanggal').value;
+      const filterHandle = document.getElementById('filterHandle').value;
+      tbody.innerHTML = '';
+
+      data.filter(item => {
+        return (!filterTanggal || item.tanggal === filterTanggal) &&
+               (!filterHandle || item.handle === filterHandle);
+      }).forEach(item => {
+        const row = `<tr>
+          <td>${item.tanggal}</td>
+          <td>${item.tipehp}</td>
+          <td>${item.kerusakan}</td>
+          <td>${item.handle}</td>
+          <td>${item.harga || ''}</td>
+          <td>${item.nama || ''}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    };
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const data = JSON.parse(localStorage.getItem('dataServis') || '[]');
+
+      const item = {
+        tanggal: document.getElementById('tanggal').value,
+        tipehp: document.getElementById('tipehp').value,
+        kerusakan: document.getElementById('kerusakan').value,
+        handle: document.getElementById('handle').value,
+        harga: document.getElementById('harga').value,
+        nama: document.getElementById('nama').value
+      };
+
+      data.push(item);
+      localStorage.setItem('dataServis', JSON.stringify(data));
+      form.reset();
+      document.getElementById('tanggal').valueAsDate = new Date();
+      loadData();
+    });
+
+    document.getElementById('filterTanggal').addEventListener('change', loadData);
+    document.getElementById('filterHandle').addEventListener('change', loadData);
+
+    function exportToExcel() {
+      const wb = XLSX.utils.book_new();
+      const data = JSON.parse(localStorage.getItem('dataServis') || '[]');
+      const wsData = [
+        ["Tanggal", "Tipe HP", "Kerusakan", "Handle", "Harga", "Nama Pelanggan"],
+        ...data.map(item => [item.tanggal, item.tipehp, item.kerusakan, item.handle, item.harga || '', item.nama || ''])
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      XLSX.utils.book_append_sheet(wb, ws, "Data Servis");
+      XLSX.writeFile(wb, "data_servis.xlsx");
+    }
+
+    window.onload = loadData;
+  </script>
+</body>
+</html>

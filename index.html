@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Beranda Transaksi</title>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/xlsx.mini.min.js"></script>
+  <link rel="stylesheet" href="style.css"></style>
+</head>
+<body>
+  <div class="container">
+    <h1>📊 Beranda Catatan Transaksi</h1>
+    <h1>ADG CELL</h1>
+    <div class="link-group">
+      <a href="pulsa.html">📱 Penjualan Pulsa</a>
+      <a href="tf.html">🏦 Transfer Bank</a>
+      <a href="tartun.html">💵 Tarik Tunai</a>
+      <a href="servis.html">Servis</a>
+      <a href="backup.html">🏦 Ekspor Excel</a>
+
+    </div>
+  </div>
+<script>
+function exportToExcel() {
+  const wb = XLSX.utils.book_new();
+
+  const pulsaWS = XLSX.utils.table_to_sheet(document.getElementById('pulsaTable'));
+  const tfWS = XLSX.utils.table_to_sheet(document.getElementById('tfTable'));
+  const tarikWS = XLSX.utils.table_to_sheet(document.getElementById('tarikTable'));
+
+  XLSX.utils.book_append_sheet(wb, pulsaWS, 'Pulsa');
+  XLSX.utils.book_append_sheet(wb, tfWS, 'Transfer');
+  XLSX.utils.book_append_sheet(wb, tarikWS, 'TarikTunai');
+
+  XLSX.writeFile(wb, 'Laporan_Transaksi_ADG.xlsx');
+}
+</script>
+
+</body>
+</html>

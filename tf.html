@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Transaksi TF - Versi Lengkap</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f4f4f4; }
+    form { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 30px; }
+    input, select, button { padding: 8px; margin: 5px; }
+    table { width: 100%; border-collapse: collapse; background: #fff; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background: #f0f0f0; }
+    .summary { margin-top: 20px; font-weight: bold; }
+    .btn-group button {
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      margin-top: 15px;
+      cursor: pointer;
+    }
+    .btn-danger { background-color: #f44336; }
+    #search {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Catatan Transaksi Transfer (TF) - Versi Lengkap</h2>
+
+<form id="formTF">
+  <input type="date" id="tgl" required>
+  <input type="text" id="nohp" placeholder="keterangan" required>
+
+  <select id="bank" required>
+    <option value="" disabled selected>Pilih Bank</option>
+    <option value="BRI">BRI</option>
+    <option value="BCA">BCA</option>
+    <option value="BNI">BNI</option>
+    <option value="MANDIRI">MANDIRI</option>
+    <option value="BTN">BTN</option>
+    <option value="DANA">DANA</option>
+    <option value="LAINNYA">Lainnya</option>
+  </select>
+
+  <input type="number" id="nominal" placeholder="Nominal TF" required>
+  <input type="text" id="feeAuto" placeholder="Fee Admin" readonly>
+  <input type="text" id="totalAuto" placeholder="Total (Nominal + Fee)" readonly>
+  <input type="text" id="marginAuto" placeholder="Margin (Total - Nominal)" readonly>
+  <button type="submit">Tambah</button>
+</form>
+
+<input type="text" id="search" placeholder="🔍 Cari berdasarkan No HP...">
+
+<table id="tfTable">
+  <thead>
+    <tr>
+      <th>No</th>
+      <th>Tanggal</th>
+      <th>Penyetor</th>
+      <th>Bank</th>
+      <th>Nominal TF</th>
+      <th>Fee Admin</th>
+      <th>Total</th>
+      <th>Margin</th>
+    </tr>
+  </thead>
+  <tbody id="tabelData"></tbody>
+</table>
+
+<div class="summary">
+  Total Nominal: <span id="totalNominal">0</span> |
+  Total Fee Admin: <span id="totalFee">0</span> |
+  Total Keseluruhan: <span id="totalTotal">0</span> |
+  Total Margin: <span id="totalMargin">0</span>
+</div>
+
+<div class="btn-group">
+  <button onclick="exportToExcel()">📤 Download Excel (.xlsx)</button>
+  <button class="btn-danger" onclick="hapusSemua()">🗑️ Hapus Semua Data</button>
+</div>
+
+<script>
+  const form = document.getElementById('formTF');
+  const tbody = document.getElementById('tabelData');
+  const searchInput = document.getElementById('search');
+  const bankInput = document.getElementById('bank');
+  const nominalInput = document.getElementById('nominal');
+  const feeAuto = document.getElementById('feeAuto');
+  const totalAuto = document.getElementById('totalAuto');
+  const marginAuto = document.getElementById('marginAuto');
+
+  const totalNominalEl = document.getElementById('totalNominal');
+  const totalFeeEl = document.getElementById('totalFee');
+  const totalTotalEl = document.getElementById('totalTotal');
+  const totalMarginEl = document.getElementById('totalMargin');
+
+  // Set tanggal otomatis saat halaman dibuka
+document.getElementById('tgl').valueAsDate = new Date();
+
+
+  let data = JSON.parse(localStorage.getItem('tfData')) || [];
+  let no = data.length > 0 ? data[data.length - 1].No + 1 : 1;
+
+  function getAdminFee(bank, nominal) {
+    nominal = parseInt(nominal);
+    if (bank === "BRI") {
+      if (nominal <= 100000) return 3000;
+      else if (nominal <= 1000000) return 5000;
+      else if (nominal <= 2000000) return 8000;
+      else if (nominal <= 5000000) return 10000;
+      else return 15000;
+    } else if (bank === "DANA") {
+      if (nominal <= 300000) return 3000;
+      else if (nominal <= 1000000) return 5000;
+      else if (nominal <= 2000000) return 8000;
+      else if (nominal <= 3000000) return 10000;
+      else return 15000;
+    } else {
+      if (nominal <= 100000) return 5000;
+      else if (nominal <= 1000000) return 10000;
+      else if (nominal <= 3000000) return 15000;
+      else return 20000;
+    }
+  }
+
+  function updateAutoFields() {
+    const bank = bankInput.value;
+    const nominal = parseInt(nominalInput.value);
+    if (bank && nominal) {
+      const fee = getAdminFee(bank, nominal);
+      const total = nominal + fee;
+      feeAuto.value = fee;
+      totalAuto.value = total;
+      marginAuto.value = fee;
+    }
+  }
+
+  [bankInput, nominalInput].forEach(input => input.addEventListener('input', updateAutoFields));
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const tgl = document.getElementById('tgl').value;
+    const nohp = document.getElementById('nohp').value;
+    const bank = bankInput.value;
+    const nominal = parseInt(nominalInput.value);
+    const fee = getAdminFee(bank, nominal);
+    const total = nominal + fee;
+    const margin = total - nominal;
+
+    const row = { No: no++, Tanggal: tgl, "No HP": nohp, Bank: bank, Nominal: nominal, "Fee Admin": fee, Total: total, Margin: margin };
+    data.push(row);
+    localStorage.setItem('tfData', JSON.stringify(data));
+    tampilkanData(data);
+    form.reset();
+    feeAuto.value = '';
+    totalAuto.value = '';
+    marginAuto.value = '';
+  });
+
+  function tampilkanData(list) {
+    tbody.innerHTML = '';
+    let totalNominal = 0, totalFee = 0, totalTotal = 0, totalMargin = 0;
+    list.forEach(d => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${d.No}</td>
+          <td>${d.Tanggal}</td>
+          <td>${d["No HP"]}</td>
+          <td>${d.Bank}</td>
+          <td>${d.Nominal.toLocaleString()}</td>
+          <td>${d["Fee Admin"]}</td>
+          <td>${d.Total}</td>
+          <td>${d.Margin}</td>
+        </tr>`;
+      totalNominal += d.Nominal;
+      totalFee += d["Fee Admin"];
+      totalTotal += d.Total;
+      totalMargin += d.Margin;
+    });
+    totalNominalEl.textContent = totalNominal;
+    totalFeeEl.textContent = totalFee;
+    totalTotalEl.textContent = totalTotal;
+    totalMarginEl.textContent = totalMargin;
+  }
+
+  function exportToExcel() {
+    if (data.length === 0) return alert("Belum ada data untuk diekspor!");
+    const sheetData = data.map(d => [
+      d.No, d.Tanggal, d["No HP"], d.Bank, d.Nominal, d["Fee Admin"], d.Total, d.Margin
+    ]);
+    const jumlahBaris = sheetData.length + 1;
+    sheetData.push([
+      "Total", "", "", "",
+      { f: `SUM(E2:E${jumlahBaris})` },
+      { f: `SUM(F2:F${jumlahBaris})` },
+      { f: `SUM(G2:G${jumlahBaris})` },
+      { f: `SUM(H2:H${jumlahBaris})` }
+    ]);
+    const header = ["No", "Tanggal", "Penyetor", "Bank", "Nominal", "Fee Admin", "Total", "Margin"];
+    sheetData.unshift(header);
+    const ws = XLSX.utils.aoa_to_sheet(sheetData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Transaksi TF");
+    XLSX.writeFile(wb, "transaksi_tf_admin_fee.xlsx");
+  }
+
+  function hapusSemua() {
+    if (confirm("Yakin ingin menghapus semua data?")) {
+      localStorage.removeItem('tfData');
+      data = [];
+      no = 1;
+      tampilkanData(data);
+    }
+  }
+
+  searchInput.addEventListener('keyup', () => {
+    const keyword = searchInput.value.trim().toLowerCase();
+    const filtered = data.filter(d => d["No HP"].toLowerCase().includes(keyword));
+    tampilkanData(filtered);
+  });
+
+  tampilkanData(data);
+</script>
+
+</body>
+</html>
