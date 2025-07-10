@@ -2,13 +2,13 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Penjualan Pulsa + Cari + LocalStorage + Excel</title>
+  <title>Penjualan Pulsa + Edit + Excel</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <link rel="stylesheet" href="style.css">
   <style>
     body { font-family: Arial; padding: 20px; background: #f4f4f4; }
     form { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 30px; }
-    input, button { padding: 8px; margin: 5px; }
+    input, select, button { padding: 8px; margin: 5px; }
     table { width: 100%; border-collapse: collapse; background: #fff; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     th { background: #f0f0f0; }
@@ -20,6 +20,7 @@
       padding: 10px 15px;
       margin-top: 15px;
       cursor: pointer;
+      border-radius: 5px;
     }
     .btn-danger { background-color: #f44336; }
     #search {
@@ -28,6 +29,14 @@
       margin-bottom: 20px;
       border: 2px solid #ccc;
       border-radius: 5px;
+    }
+    .btn-edit {
+      background-color: orange;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 4px;
     }
   </style>
 </head>
@@ -39,6 +48,20 @@
   <input type="date" id="tgl" required>
   <input type="text" id="nohp" placeholder="No HP" required>
   <input type="text" id="denom" placeholder="Denom" required>
+  <select id="via" required>
+    <option value="" disabled selected>Pilih VIA</option>
+    <option value="MOBO">MOBO</option>
+    <option value="LINK">LINK</option>
+    <option value="DOMPUL">DOMPUL</option>
+    <option value="VIVA">VIVA</option>
+    <option value="XML">XML</option>
+    <option value="AD">MINTA AD</option>
+    <option value="ADS">MINTA ADS</option>
+    <option value="ADP">MINTA ADP</option>
+    <option value="KE_AD">ISI KE AD</option>
+    <option value="KE_ADS">ISI KE ADS</option>
+    <option value="KE_ADP">ISI KE ADP</option>
+  </select>
   <input type="number" id="jual" placeholder="Harga Jual" required>
   <input type="number" id="modal" placeholder="Modal" required>
   <button type="submit">Tambah</button>
@@ -53,9 +76,11 @@
       <th>Tanggal</th>
       <th>No HP</th>
       <th>Denom</th>
+      <th>Via</th>
       <th>Harga Jual</th>
       <th>Modal</th>
       <th>Laba</th>
+      <th>Aksi</th>
     </tr>
   </thead>
   <tbody id="tabelData"></tbody>
@@ -77,55 +102,79 @@
   const totalModalEl = document.getElementById('totalModal');
   const totalLabaEl = document.getElementById('totalLaba');
   const searchInput = document.getElementById('search');
+  const submitBtn = form.querySelector('button[type="submit"]');
 
-  // Set tanggal otomatis saat halaman dibuka
-document.getElementById('tgl').valueAsDate = new Date();
-
+  document.getElementById('tgl').valueAsDate = new Date();
 
   let data = JSON.parse(localStorage.getItem('pulsaData')) || [];
-  let no = data.length > 0 ? data[data.length - 1].No + 1 : 1;
+  let no = data.length > 0 ? Math.max(...data.map(d => d.No)) + 1 : 1;
+  let editIndex = -1;
 
   form.addEventListener('submit', function(e) {
-  e.preventDefault();
+    e.preventDefault();
 
-  const tgl = document.getElementById('tgl').value;
-  const nohp = document.getElementById('nohp').value;
-  const denom = document.getElementById('denom').value.trim(); // ✅ perbaikan di sini
-  const jual = parseInt(document.getElementById('jual').value);
-  const modal = parseInt(document.getElementById('modal').value);
-  const laba = jual - modal;
+    const tgl = document.getElementById('tgl').value;
+    const nohp = document.getElementById('nohp').value;
+    const denom = document.getElementById('denom').value.trim();
+    const via = document.getElementById('via').value;
+    const jual = parseInt(document.getElementById('jual').value);
+    const modal = parseInt(document.getElementById('modal').value);
+    const laba = jual - modal;
 
-  const row = {
-    No: no++,
-    Tanggal: tgl,
-    "No HP": nohp,
-    Denom: denom,
-    "Harga Jual": jual,
-    Modal: modal,
-    Laba: laba
-  };
+    if (!tgl || !nohp || !denom || !via || isNaN(jual) || isNaN(modal)) {
+      alert("Harap isi semua kolom dengan benar.");
+      return;
+    }
 
-  data.push(row);
-  localStorage.setItem('pulsaData', JSON.stringify(data));
-  tampilkanData(data);
-  form.reset();
-});
+    if (editIndex === -1) {
+      const row = {
+        No: no++,
+        Tanggal: tgl,
+        "No HP": nohp,
+        Denom: denom,
+        Via: via,
+        "Harga Jual": jual,
+        Modal: modal,
+        Laba: laba
+      };
+      data.push(row);
+    } else {
+      data[editIndex] = {
+        ...data[editIndex],
+        Tanggal: tgl,
+        "No HP": nohp,
+        Denom: denom,
+        Via: via,
+        "Harga Jual": jual,
+        Modal: modal,
+        Laba: laba
+      };
+      editIndex = -1;
+      submitBtn.textContent = "Tambah";
+    }
 
+    localStorage.setItem('pulsaData', JSON.stringify(data));
+    tampilkanData(data);
+    form.reset();
+  });
 
   function tampilkanData(list) {
     tbody.innerHTML = '';
     let totalLaba = 0, totalModal = 0;
 
-    list.forEach(d => {
+    list.forEach((d, index) => {
       tbody.innerHTML += `
         <tr>
           <td>${d.No}</td>
           <td>${d.Tanggal}</td>
           <td>${d["No HP"]}</td>
           <td>${d.Denom}</td>
+          <td>${d.Via}</td>
           <td>${d["Harga Jual"]}</td>
           <td>${d.Modal}</td>
-          <td>${d.Laba}</td>
+          <td style="color:${d.Laba < 0 ? 'red' : 'black'}">${d.Laba}</td>
+          <td><button class="btn-edit" onclick="editBaris(${index})">✏️ Edit</button>
+            <button onclick="hapusBaris(${index})" class="btn-danger">🗑️</button></td></td>
         </tr>
       `;
       totalLaba += d.Laba;
@@ -136,6 +185,27 @@ document.getElementById('tgl').valueAsDate = new Date();
     totalModalEl.textContent = totalModal;
   }
 
+  function editBaris(index) {
+    const d = data[index];
+    document.getElementById('tgl').value = d.Tanggal;
+    document.getElementById('nohp').value = d["No HP"];
+    document.getElementById('denom').value = d.Denom;
+    document.getElementById('via').value = d.Via;
+    document.getElementById('jual').value = d["Harga Jual"];
+    document.getElementById('modal').value = d.Modal;
+
+    editIndex = index;
+    submitBtn.textContent = "Update";
+  }
+  function hapusBaris(index) {
+  if (confirm("Hapus data ini?")) {
+    data.splice(index, 1);
+    localStorage.setItem('pulsaData', JSON.stringify(data));
+    tampilkanData(data);
+  }
+}
+
+
   function exportToExcel() {
     if (data.length === 0) {
       alert("Belum ada data untuk diekspor!");
@@ -143,18 +213,18 @@ document.getElementById('tgl').valueAsDate = new Date();
     }
 
     const sheetData = data.map(d => [
-      d.No, d.Tanggal, d["No HP"], d.Denom, d["Harga Jual"], d.Modal, d.Laba
+      d.No, d.Tanggal, d["No HP"], d.Denom, d.Via, d["Harga Jual"], d.Modal, d.Laba
     ]);
 
     const jumlahBaris = sheetData.length + 1;
     sheetData.push([
-      "Total", "", "", "",
-      { f: `SUM(E2:E${jumlahBaris})` },
+      "Total", "", "", "", "",
+      { f: `SUM(F2:F${jumlahBaris})` },
       "",
-      { f: `SUM(G2:G${jumlahBaris})` }
+      { f: `SUM(H2:H${jumlahBaris})` }
     ]);
 
-    const header = ["No", "Tanggal", "No HP", "Denom", "Harga Jual", "Modal", "Laba"];
+    const header = ["No", "Tanggal", "No HP", "Denom", "Via", "Harga Jual", "Modal", "Laba"];
     sheetData.unshift(header);
 
     const ws = XLSX.utils.aoa_to_sheet(sheetData);
@@ -178,9 +248,7 @@ document.getElementById('tgl').valueAsDate = new Date();
     tampilkanData(filtered);
   });
 
-  // tampilkan saat pertama kali
   tampilkanData(data);
 </script>
-
 </body>
 </html>
