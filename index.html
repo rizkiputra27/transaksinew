@@ -20,20 +20,7 @@
     </div>
   </div>
 <script>
-function exportToExcel() {
-  const wb = XLSX.utils.book_new();
-
-  const pulsaWS = XLSX.utils.table_to_sheet(document.getElementById('pulsaTable'));
-  const tfWS = XLSX.utils.table_to_sheet(document.getElementById('tfTable'));
-  const tarikWS = XLSX.utils.table_to_sheet(document.getElementById('tarikTable'));
-
-  XLSX.utils.book_append_sheet(wb, pulsaWS, 'Pulsa');
-  XLSX.utils.book_append_sheet(wb, tfWS, 'Transfer');
-  XLSX.utils.book_append_sheet(wb, tarikWS, 'TarikTunai');
-
-  XLSX.writeFile(wb, 'Laporan_Transaksi_ADG.xlsx');
-}
-const CURRENT_VERSION = "1.0.3"; // versi lokal halaman
+  const CURRENT_VERSION = "1.0.3"; // versi lokal halaman
 
   async function checkForUpdate() {
     try {
@@ -51,6 +38,19 @@ const CURRENT_VERSION = "1.0.3"; // versi lokal halaman
 
   // Cek update setiap 60 detik
   setInterval(checkForUpdate, 60000);
+function exportToExcel() {
+  const wb = XLSX.utils.book_new();
+
+  const pulsaWS = XLSX.utils.table_to_sheet(document.getElementById('pulsaTable'));
+  const tfWS = XLSX.utils.table_to_sheet(document.getElementById('tfTable'));
+  const tarikWS = XLSX.utils.table_to_sheet(document.getElementById('tarikTable'));
+
+  XLSX.utils.book_append_sheet(wb, pulsaWS, 'Pulsa');
+  XLSX.utils.book_append_sheet(wb, tfWS, 'Transfer');
+  XLSX.utils.book_append_sheet(wb, tarikWS, 'TarikTunai');
+
+  XLSX.writeFile(wb, 'Laporan_Transaksi_ADG.xlsx');
+}
 </script>
 
 </body>
