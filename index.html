@@ -27,7 +27,7 @@
       const res = await fetch('version.json', { cache: "no-cache" });
       const data = await res.json();
       if (data.version !== CURRENT_VERSION) {
-        if (confirm("Versi baru tersedia. Klik OK untuk memuat ulang.")) {
+        if (confirm("Bar tak Update, Refresh en sek.")) {
           location.reload(true);
         }
       }
