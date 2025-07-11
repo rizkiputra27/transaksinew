@@ -72,6 +72,9 @@
 </div>
 
 <button class="btn-export" onclick="exportSemuaData()">📤 Ekspor Semua ke Excel</button>
+<input type="file" id="fileInput" accept=".xlsx" style="margin-top: 10px;" />
+<button onclick="importDariExcel()">📥 Impor dari Excel</button>
+<button onclick="hapusSemuaData()" style="background:#f44336; color:white; padding:10px 20px; border:none; margin-top:10px;">🗑️ Hapus Semua Data</button>
 
 <script>
 function showTab(id) {
@@ -157,6 +160,90 @@ function exportSemuaData() {
 }
 
 window.onload = loadData;
+function importDariExcel() {
+  const fileInput = document.getElementById('fileInput');
+  const file = fileInput.files[0];
+  if (!file) {
+    alert('Silakan pilih file Excel terlebih dahulu.');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: 'array' });
+
+    // Cek dan proses setiap sheet
+    const newPulsa = [], newTF = [], newTarik = [];
+
+    if (workbook.SheetNames.includes('Penjualan Pulsa')) {
+      const pulsaSheet = XLSX.utils.sheet_to_json(workbook.Sheets['Penjualan Pulsa'], { defval: '' });
+      pulsaSheet.forEach((row, i) => {
+        if (i >= pulsaSheet.length - 1) return; // skip baris total
+        newPulsa.push({
+          No: i + 1,
+          Tanggal: row['Tanggal'],
+          "No HP": row['No HP'],
+          Denom: row['Denom'],
+          Via: row['via'] || row['Via'] || '',
+          "Harga Jual": row['Harga Jual'],
+          Modal: row['Modal'],
+          Laba: row['Laba']
+        });
+      });
+      localStorage.setItem('pulsaData', JSON.stringify(newPulsa));
+    }
+
+    if (workbook.SheetNames.includes('Transaksi TF')) {
+      const tfSheet = XLSX.utils.sheet_to_json(workbook.Sheets['Transaksi TF'], { defval: '' });
+      tfSheet.forEach((row, i) => {
+        if (i >= tfSheet.length - 1) return;
+        newTF.push({
+          No: i + 1,
+          Tanggal: row['Tanggal'],
+          "No HP": row['Penyetor'],
+          Bank: row['Bank'],
+          Nominal: row['Nominal'],
+          "Fee Admin": row['Fee Admin'],
+          Total: row['Total'],
+          Margin: row['Margin']
+        });
+      });
+      localStorage.setItem('tfData', JSON.stringify(newTF));
+    }
+
+    if (workbook.SheetNames.includes('Tarik Tunai')) {
+      const tarikSheet = XLSX.utils.sheet_to_json(workbook.Sheets['Tarik Tunai'], { defval: '' });
+      tarikSheet.forEach((row, i) => {
+        if (i >= tarikSheet.length - 1) return;
+        newTarik.push({
+          No: i + 1,
+          Tanggal: row['Tanggal'],
+          Keterangan: row['Keterangan'],
+          Nominal: row['Nominal'],
+          Admin: row['Admin'],
+          Total: row['Total']
+        });
+      });
+      localStorage.setItem('tarikData', JSON.stringify(newTarik));
+    }
+
+    alert('Data berhasil diimpor!');
+    loadData(); // Perbarui tampilan
+  };
+
+  reader.readAsArrayBuffer(file);
+}
+function hapusSemuaData() {
+  const konfirmasi = confirm('Yakin ingin menghapus SEMUA data transaksi? Tindakan ini tidak bisa dibatalkan!');
+  if (konfirmasi) {
+    localStorage.removeItem('pulsaData');
+    localStorage.removeItem('tfData');
+    localStorage.removeItem('tarikData');
+    loadData(); // Reload tabel jadi kosong
+    alert('Semua data berhasil dihapus.');
+  }
+}
 </script>
 
 </body>
