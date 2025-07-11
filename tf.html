@@ -112,7 +112,7 @@
 
   function getAdminFee(bank, nominal) {
     nominal = parseInt(nominal);
-    if (bank === "BRI/VA") {
+    if (bank === "BRI/BRIVA") {
       if (nominal <= 100000) return 3000;
       else if (nominal <= 1000000) return 5000;
       else if (nominal <= 2000000) return 8000;
