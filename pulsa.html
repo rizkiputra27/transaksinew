@@ -45,7 +45,7 @@
 <h2>Catatan Penjualan Pulsa</h2>
 
 <form id="formPulsa">
-  <input type="date" id="tgl" required>
+  <input type="date" id="tgl" required readonly>
   <input type="text" id="nohp" placeholder="No HP" required>
   <input type="text" id="denom" placeholder="Denom" required>
   <select id="via" required>
@@ -87,8 +87,8 @@
 </table>
 
 <div class="summary">
-  Total Modal: <span id="totalModal">0</span> |
-  Total Laba: <span id="totalLaba">0</span>
+  Total Modal: <span id="totalModal">Rp 0</span> |
+  Total Laba: <span id="totalLaba">Rp 0</span>
 </div>
 
 <div class="btn-group">
@@ -104,11 +104,21 @@
   const searchInput = document.getElementById('search');
   const submitBtn = form.querySelector('button[type="submit"]');
 
-  document.getElementById('tgl').valueAsDate = new Date();
-
   let data = JSON.parse(localStorage.getItem('pulsaData')) || [];
   let no = data.length > 0 ? Math.max(...data.map(d => d.No)) + 1 : 1;
   let editIndex = -1;
+
+  function setTanggalHariIni() {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    document.getElementById('tgl').value = `${yyyy}-${mm}-${dd}`;
+  }
+
+  function formatRupiah(angka) {
+    return "Rp " + angka.toLocaleString("id-ID");
+  }
 
   form.addEventListener('submit', function(e) {
     e.preventDefault();
@@ -156,6 +166,7 @@
     localStorage.setItem('pulsaData', JSON.stringify(data));
     tampilkanData(data);
     form.reset();
+    setTanggalHariIni();
   });
 
   function tampilkanData(list) {
@@ -170,19 +181,21 @@
           <td>${d["No HP"]}</td>
           <td>${d.Denom}</td>
           <td>${d.Via}</td>
-          <td>${d["Harga Jual"]}</td>
-          <td>${d.Modal}</td>
-          <td style="color:${d.Laba < 0 ? 'red' : 'black'}">${d.Laba}</td>
-          <td><button class="btn-edit" onclick="editBaris(${index})">✏️ Edit</button>
-            <button onclick="hapusBaris(${index})" class="btn-danger">🗑️</button></td></td>
+          <td>${formatRupiah(d["Harga Jual"])}</td>
+          <td>${formatRupiah(d.Modal)}</td>
+          <td style="color:${d.Laba < 0 ? 'red' : 'black'}">${formatRupiah(d.Laba)}</td>
+          <td>
+            <button class="btn-edit" onclick="editBaris(${index})">✏️ Edit</button>
+            <button onclick="hapusBaris(${index})" class="btn-danger">🗑️</button>
+          </td>
         </tr>
       `;
       totalLaba += d.Laba;
       totalModal += d.Modal;
     });
 
-    totalLabaEl.textContent = totalLaba;
-    totalModalEl.textContent = totalModal;
+    totalLabaEl.textContent = formatRupiah(totalLaba);
+    totalModalEl.textContent = formatRupiah(totalModal);
   }
 
   function editBaris(index) {
@@ -197,14 +210,14 @@
     editIndex = index;
     submitBtn.textContent = "Update";
   }
-  function hapusBaris(index) {
-  if (confirm("Hapus data ini?")) {
-    data.splice(index, 1);
-    localStorage.setItem('pulsaData', JSON.stringify(data));
-    tampilkanData(data);
-  }
-}
 
+  function hapusBaris(index) {
+    if (confirm("Hapus data ini?")) {
+      data.splice(index, 1);
+      localStorage.setItem('pulsaData', JSON.stringify(data));
+      tampilkanData(data);
+    }
+  }
 
   function exportToExcel() {
     if (data.length === 0) {
@@ -248,7 +261,10 @@
     tampilkanData(filtered);
   });
 
+  // Inisialisasi saat halaman dimuat
+  setTanggalHariIni();
   tampilkanData(data);
 </script>
+
 </body>
 </html>
