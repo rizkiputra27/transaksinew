@@ -20,24 +20,6 @@
     </div>
   </div>
 <script>
-  const CURRENT_VERSION = "1.0.5"; // versi lokal halaman
-
-  async function checkForUpdate() {
-    try {
-      const res = await fetch('version.json', { cache: "no-cache" });
-      const data = await res.json();
-      if (data.version !== CURRENT_VERSION) {
-        if (confirm("Bar tak Update, Refresh en sek.")) {
-          location.reload(true);
-        }
-      }
-    } catch (err) {
-      console.error("Gagal cek versi:", err);
-    }
-  }
-
-  // Cek update setiap 60 detik
-  setInterval(checkForUpdate, 60000);
 function exportToExcel() {
   const wb = XLSX.utils.book_new();
 
