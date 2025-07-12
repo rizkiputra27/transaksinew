@@ -41,7 +41,7 @@
 
   <select id="bank" required>
     <option value="" disabled selected>Pilih Bank</option>
-    <option value="BRI/BRIVA">BRI/BRIVA</option>
+    <option value="BRI/BRIVA/SEABANK">BRI/BRIVA/SEA BANK</option>
     <option value="BCA/VA">BCA/BCAVA</option>
     <option value="BNI/VA">BNI/BNIVA</option>
     <option value="MANDIRI/VA">MANDIRI</option>
@@ -112,7 +112,7 @@
 
   function getAdminFee(bank, nominal) {
     nominal = parseInt(nominal);
-    if (bank === "BRI/BRIVA") {
+    if (bank === "BRI/BRIVA/SEABANK") {
       if (nominal <= 100000) return 3000;
       else if (nominal <= 1000000) return 5000;
       else if (nominal <= 2000000) return 8000;
