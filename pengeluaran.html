@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Catatan Keuangan Harian</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+    h2 {
+      color: #333;
+    }
+    input, select, button {
+      padding: 8px;
+      margin: 5px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    .summary {
+      margin-top: 20px;
+      background: #e0f7fa;
+      padding: 15px;
+      border-radius: 10px;
+    }
+    th {
+      background: #e0e0e0;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Catatan Keuangan Harian</h2>
+
+<label>Jenis:</label>
+<select id="tipe">
+  <option value="Pemasukan">Pemasukan</option>
+  <option value="Pengeluaran">Pengeluaran</option>
+</select>
+
+<input type="text" id="keterangan" placeholder="Keterangan">
+<input type="number" id="jumlah" placeholder="Jumlah (Rp)">
+<button onclick="tambahTransaksi()">Tambah</button>
+
+<table id="tabelTransaksi">
+  <thead>
+    <tr>
+      <th>Tanggal</th>
+      <th>Keterangan</th>
+      <th>Pemasukan</th>
+      <th>Pengeluaran</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<div class="summary">
+  <p><strong>Total Pemasukan:</strong> Rp <span id="totalMasuk">0</span></p>
+  <p><strong>Total Pengeluaran:</strong> Rp <span id="totalKeluar">0</span></p>
+</div>
+
+<script>
+  const tabelBody = document.querySelector("#tabelTransaksi tbody");
+  let data = JSON.parse(localStorage.getItem("transaksi")) || [];
+
+  function formatRupiah(angka) {
+    return angka.toLocaleString("id-ID");
+  }
+
+  function render() {
+    tabelBody.innerHTML = "";
+    let totalMasuk = 0;
+    let totalKeluar = 0;
+
+    data.forEach(item => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${item.tanggal}</td>
+        <td>${item.keterangan}</td>
+        <td>${item.tipe === "Pemasukan" ? "Rp " + formatRupiah(item.jumlah) : ""}</td>
+        <td>${item.tipe === "Pengeluaran" ? "Rp " + formatRupiah(item.jumlah) : ""}</td>
+      `;
+      tabelBody.appendChild(tr);
+
+      if (item.tipe === "Pemasukan") {
+        totalMasuk += item.jumlah;
+      } else {
+        totalKeluar += item.jumlah;
+      }
+    });
+
+    document.getElementById("totalMasuk").innerText = formatRupiah(totalMasuk);
+    document.getElementById("totalKeluar").innerText = formatRupiah(totalKeluar);
+  }
+
+  function tambahTransaksi() {
+    const tipe = document.getElementById("tipe").value;
+    const keterangan = document.getElementById("keterangan").value.trim();
+    const jumlah = parseInt(document.getElementById("jumlah").value);
+    const tanggal = new Date().toLocaleDateString("id-ID");
+
+    if (!keterangan || isNaN(jumlah)) {
+      alert("Lengkapi semua field!");
+      return;
+    }
+
+    data.push({ tipe, keterangan, jumlah, tanggal });
+    localStorage.setItem("transaksi", JSON.stringify(data));
+    render();
+
+    document.getElementById("keterangan").value = "";
+    document.getElementById("jumlah").value = "";
+  }
+
+  render();
+</script>
+
+</body>
+</html>
