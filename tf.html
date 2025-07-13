@@ -177,6 +177,7 @@
     localStorage.setItem('tfData', JSON.stringify(data));
     tampilkanData(data);
     form.reset();
+    document.getElementById('tgl').valueAsDate= new Date();
     feeAuto.value = '';
     totalAuto.value = '';
     marginAuto.value = '';
