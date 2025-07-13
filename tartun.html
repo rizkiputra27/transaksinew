@@ -99,6 +99,7 @@
     localStorage.setItem('tarikData', JSON.stringify(data));
     tampilkanData();
     form.reset();
+    document.getElementById('tgl').valueAsDate= new Date() ;
     totalEl.value = '';
   });
 
