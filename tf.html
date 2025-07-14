@@ -46,7 +46,7 @@
     <option value="BNI/VA">BNI/BNIVA</option>
     <option value="MANDIRI/VA">MANDIRI</option>
     <option value="BTN/VA">BTN</option>
-    <option value="DANA">DANA/SHOOPEPAY/GOPAY/LINK AJA</option>
+    <option value="DANA/E-Wallet">DANA/SHOOPEPAY/GOPAY/LINK AJA</option>
     <option value="FINANCE">FINANCE</option>
     <option value="LAINNYA">Lainnya</option>
   </select>
@@ -118,7 +118,7 @@
       else if (nominal <= 2000000) return 8000;
       else if (nominal <= 5000000) return 10000;
       else return 15000;
-    } else if (bank === "DANA") {
+    } else if (bank === "DANA/E-Wallet") {
       if (nominal <= 300000) return 3000;
       else if (nominal <= 1000000) return 5000;
       else if (nominal <= 2000000) return 8000;
