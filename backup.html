@@ -117,6 +117,21 @@ function loadData() {
       <td>${d.Nominal}</td><td>${d.Admin}</td><td>${d.Total}</td>
     </tr>`;
   });
+// Total Pulsa
+const totalHJ = dataPulsa.reduce((sum, d) => sum + parseFloat(d["Harga Jual"] || 0), 0);
+document.getElementById('totalPulsa').innerText = `Total Harga Jual: Rp ${totalHJ.toLocaleString('id-ID')}`;
+
+// Total TF
+const totalNominalTF = dataTF.reduce((sum, d) => sum + parseFloat(d["Nominal"] || 0), 0);
+const totalTotalTF = dataTF.reduce((sum, d) => sum + parseFloat(d["Total"] || 0), 0);
+document.getElementById('totalTF').innerText =
+  `Total Nominal: Rp ${totalNominalTF.toLocaleString('id-ID')} | Total: Rp ${totalTotalTF.toLocaleString('id-ID')}`;
+
+// Total Tarik Tunai
+const totalNominalTarik = dataTarik.reduce((sum, d) => sum + parseFloat(d["Nominal"] || 0), 0);
+const totalAdminTarik = dataTarik.reduce((sum, d) => sum + parseFloat(d["Admin"] || 0), 0);
+document.getElementById('totalTarik').innerText =
+  `Total Nominal: Rp ${totalNominalTarik.toLocaleString('id-ID')} | Total Admin: Rp ${totalAdminTarik.toLocaleString('id-ID')}`;
 }
 
 function exportSemuaData() {
