@@ -25,7 +25,8 @@
   <input type="number" id="nominal" placeholder="Nominal Tarik" required>
   <input type="number" id="admin" placeholder="Admin" required>
   <input type="text" id="total" placeholder="Total" readonly>
-  <button type="submit">Tambah</button>
+  <button type="submit">Tambah</button>
+
 </form>
 
 <table id="tarikTable">
@@ -101,6 +102,7 @@
     form.reset();
     document.getElementById('tgl').valueAsDate= new Date() ;
     totalEl.value = '';
+    document.getElementById('keterangan').focus();
   });
 
   function tampilkanData() {
