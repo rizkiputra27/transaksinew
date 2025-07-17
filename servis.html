@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Form Input Servis</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <link rel="stylesheet" href="style.css">
   <style>
     body {
@@ -46,6 +46,23 @@
     .container {
       max-width: 900px;
       margin: auto;
+    }
+    .aksi-btn {
+      display: inline-block;
+      margin-right: 5px;
+      padding: 4px 8px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .edit-btn {
+      background-color: #ffc107;
+      color: white;
+    }
+    .hapus-btn {
+      background-color: #dc3545;
+      color: white;
     }
   </style>
 </head>
@@ -91,6 +108,7 @@
           <th>Handle</th>
           <th>Harga</th>
           <th>Nama Pelanggan</th>
+          <th>Aksi</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -100,8 +118,9 @@
   <script>
     const form = document.getElementById('formServis');
     const tbody = document.querySelector('#tabelServis tbody');
-
     document.getElementById('tanggal').valueAsDate = new Date();
+
+    let editIndex = -1;
 
     const loadData = () => {
       const data = JSON.parse(localStorage.getItem('dataServis') || '[]');
@@ -109,10 +128,10 @@
       const filterHandle = document.getElementById('filterHandle').value;
       tbody.innerHTML = '';
 
-      data.filter(item => {
+      data.filter((item, index) => {
         return (!filterTanggal || item.tanggal === filterTanggal) &&
                (!filterHandle || item.handle === filterHandle);
-      }).forEach(item => {
+      }).forEach((item, index) => {
         const row = `<tr>
           <td>${item.tanggal}</td>
           <td>${item.tipehp}</td>
@@ -120,6 +139,10 @@
           <td>${item.handle}</td>
           <td>${item.harga || ''}</td>
           <td>${item.nama || ''}</td>
+          <td>
+            <button class="aksi-btn edit-btn" onclick="editData(${index})">Edit</button>
+            <button class="aksi-btn hapus-btn" onclick="hapusData(${index})">Hapus</button>
+          </td>
         </tr>`;
         tbody.innerHTML += row;
       });
@@ -138,15 +161,39 @@
         nama: document.getElementById('nama').value
       };
 
-      data.push(item);
+      if (editIndex === -1) {
+        data.push(item);
+      } else {
+        data[editIndex] = item;
+        editIndex = -1;
+      }
+
       localStorage.setItem('dataServis', JSON.stringify(data));
       form.reset();
       document.getElementById('tanggal').valueAsDate = new Date();
       loadData();
     });
 
-    document.getElementById('filterTanggal').addEventListener('change', loadData);
-    document.getElementById('filterHandle').addEventListener('change', loadData);
+    function editData(index) {
+      const data = JSON.parse(localStorage.getItem('dataServis') || '[]');
+      const item = data[index];
+      document.getElementById('tanggal').value = item.tanggal;
+      document.getElementById('tipehp').value = item.tipehp;
+      document.getElementById('kerusakan').value = item.kerusakan;
+      document.getElementById('handle').value = item.handle;
+      document.getElementById('harga').value = item.harga;
+      document.getElementById('nama').value = item.nama;
+      editIndex = index;
+    }
+
+    function hapusData(index) {
+      if (confirm("Yakin ingin menghapus data ini?")) {
+        const data = JSON.parse(localStorage.getItem('dataServis') || '[]');
+        data.splice(index, 1);
+        localStorage.setItem('dataServis', JSON.stringify(data));
+        loadData();
+      }
+    }
 
     function exportToExcel() {
       const wb = XLSX.utils.book_new();
@@ -160,6 +207,8 @@
       XLSX.writeFile(wb, "data_servis.xlsx");
     }
 
+    document.getElementById('filterTanggal').addEventListener('change', loadData);
+    document.getElementById('filterHandle').addEventListener('change', loadData);
     window.onload = loadData;
   </script>
 </body>
