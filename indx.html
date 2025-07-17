@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Landing Page - Aplikasi Transaksi</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #00c6ff, #0072ff);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      text-align: center;
+    }
+
+    /* Tombol kanan atas */
+    .top-right-buttons {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .top-right-buttons a {
+      text-decoration: none;
+    }
+
+    .circle-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background-color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0072ff;
+      font-size: 18px;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+
+    .circle-icon:hover {
+      background-color: #e0f0ff;
+      transform: scale(1.1);
+    }
+
+    .facebook { background-color: #3b5998; color: white; }
+    .facebook:hover { background-color: #334d84; }
+
+    .whatsapp { background-color: #25D366; color: white; }
+    .whatsapp:hover { background-color: #1ebe5d; }
+
+    .container {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      max-width: 500px;
+      backdrop-filter: blur(10px);
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+
+    .icon {
+      font-size: 60px;
+      margin-bottom: 20px;
+      color: #ffeb3b;
+    }
+
+    p {
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+
+    .main-button {
+      padding: 15px 35px;
+      background-color: #ffeb3b;
+      color: #333;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+    }
+
+    .main-button:hover {
+      background-color: #fff176;
+    }
+
+    @media screen and (max-width: 600px) {
+      .top-right-buttons {
+        top: 10px;
+        right: 10px;
+        gap: 8px;
+      }
+
+      .circle-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+      }
+
+      .container {
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      p {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ikon bulat di kanan atas -->
+  <div class="top-right-buttons">
+    <a href="login.html" title="Login">
+      <div class="circle-icon"><i class="fas fa-user"></i></div>
+    </a>
+  </div>
+
+  <!-- Konten utama -->
+  <div class="container">
+    <div class="icon"><i class="fas fa-chart-line"></i></div>
+    <h1>SELAMAT DATANG DI APLIKASI PENCATATAN TRANSAKSI</h1>
+    <p>Mencatat penjualan, keuangan, dan transaksi harian dengan cepat dan efisien.</p>
+    <a href="beranda.html">
+      <button class="main-button"><i class="fas fa-arrow-right"></i> Masuk Aplikasi</button>
+    </a>
+  </div>
+
+</body>
+</html>
