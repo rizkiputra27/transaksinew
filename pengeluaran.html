@@ -37,7 +37,7 @@
 </select>
 <input type="text" id="keterangan" placeholder="Keterangan">
 <input type="number" id="jumlah" placeholder="Jumlah (Rp)">
-<button onclick="tambahData()">Tambah</button>
+<button id="btnSimpan" onclick="tambahData()">Tambah</button>
 
 <table id="tabelData">
   <thead>
@@ -53,6 +53,7 @@
 
 <script>
   let data = JSON.parse(localStorage.getItem("keluarData")) || [];
+  let editIndex = -1;
 
   function formatRupiah(angka) {
     return angka.toLocaleString("id-ID");
@@ -79,7 +80,7 @@
         <td>${pemasukan ? "Rp " + formatRupiah(pemasukan) : ""}</td>
         <td>${pengeluaran ? "Rp " + formatRupiah(pengeluaran) : ""}</td>
         <td>
-          <button class="edit-btn" onclick="editData(${index})">Edit</button>
+          <button class="edit-btn" onclick="isiFormEdit(${index})">Edit</button>
           <button class="delete-btn" onclick="hapusData(${index})">Hapus</button>
         </td>
       `;
@@ -108,31 +109,30 @@
       Pengeluaran: tipe === "Pengeluaran" ? jumlah : ""
     };
 
-    data.push(entry);
+    if (editIndex === -1) {
+      // Tambah
+      data.push(entry);
+    } else {
+      // Edit
+      data[editIndex] = entry;
+      editIndex = -1;
+      document.getElementById("btnSimpan").innerText = "Tambah";
+    }
+
     render();
 
+    document.getElementById("tipe").value = "Pemasukan";
     document.getElementById("keterangan").value = "";
     document.getElementById("jumlah").value = "";
   }
 
-  function editData(index) {
+  function isiFormEdit(index) {
     const item = data[index];
-    const keterangan = prompt("Edit keterangan:", item.Keterangan);
-    if (keterangan === null) return;
-
-    const jumlah = prompt("Edit jumlah:", item.Pemasukan || item.Pengeluaran);
-    if (jumlah === null || isNaN(jumlah)) return;
-
-    const tipe = item.Pemasukan !== "" ? "Pemasukan" : "Pengeluaran";
-
-    data[index] = {
-      No: index + 1,
-      Keterangan: keterangan,
-      Pemasukan: tipe === "Pemasukan" ? parseFloat(jumlah) : "",
-      Pengeluaran: tipe === "Pengeluaran" ? parseFloat(jumlah) : ""
-    };
-
-    render();
+    document.getElementById("tipe").value = item.Pemasukan !== "" ? "Pemasukan" : "Pengeluaran";
+    document.getElementById("keterangan").value = item.Keterangan;
+    document.getElementById("jumlah").value = item.Pemasukan || item.Pengeluaran;
+    document.getElementById("btnSimpan").innerText = "Simpan";
+    editIndex = index;
   }
 
   function hapusData(index) {
