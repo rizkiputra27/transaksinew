@@ -27,6 +27,8 @@
   <button onclick="showTab('pulsa')" class="active">Pulsa</button>
   <button onclick="showTab('tf')">TF</button>
   <button onclick="showTab('tarik')">Tarik Tunai</button>
+  <button onclick="showTab('keluar')">Pengeluaran</button>
+
 </div>
 
 <div id="pulsa" class="tab active">
@@ -60,6 +62,16 @@
     <tbody></tbody>
   </table>
 <p id="totalTarik" style="font-weight: bold; margin-top: 10px;"></p>
+</div>
+<div id="keluar" class="tab">
+  <h3>Pengeluaran & Pemasukan</h3>
+  <table id="tableKeluar">
+    <thead>
+      <tr><th>No</th><th>Keterangan</th><th>Pemasukan</th><th>Pengeluaran</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <p id="totalKeluar" style="font-weight: bold; margin-top: 10px;"></p>
 </div>
 <div id="modalEdit" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
   <div style="background:#fff; padding:20px; border-radius:10px; width:90%; max-width:400px;">
@@ -120,6 +132,21 @@ function loadData() {
       <td>${d.Nominal}</td><td>${d.Admin}</td><td>${d.Total}</td>
     </tr>`;
   });
+
+    // Pengeluaran
+  const dataKeluar = JSON.parse(localStorage.getItem('keluarData')) || [];
+  const tbodyKeluar = document.querySelector('#tableKeluar tbody');
+  tbodyKeluar.innerHTML = '';
+  dataKeluar.forEach((d, i) => {
+    tbodyKeluar.innerHTML += `<tr>
+      <td>${i + 1}</td><td>${d.Keterangan}</td><td>${d.Pemasukan || ""}</td><td>${d.Pengeluaran || ""}</td>
+    </tr>`;
+  });
+  const totalPemasukan = dataKeluar.reduce((sum, d) => sum + parseFloat(d.Pemasukan || 0), 0);
+  const totalPengeluaran = dataKeluar.reduce((sum, d) => sum + parseFloat(d.Pengeluaran || 0), 0);
+  document.getElementById('totalKeluar').innerText =
+    `Total Pemasukan: Rp ${totalPemasukan.toLocaleString('id-ID')} | Total Pengeluaran: Rp ${totalPengeluaran.toLocaleString('id-ID')}`;
+
 // Total Pulsa
 const totalHJ = dataPulsa.reduce((sum, d) => sum + parseFloat(d["Harga Jual"] || 0), 0);
 document.getElementById('totalPulsa').innerText = `Total Harga Jual: Rp ${totalHJ.toLocaleString('id-ID')}`;
@@ -173,6 +200,15 @@ function exportSemuaData() {
   const mm = String(today.getMonth() + 1).padStart(2, '0');
   const dd = String(today.getDate()).padStart(2, '0');
   const filename = `Transaksi (${yyyy}-${mm}-${dd}).xlsx`;
+
+  const dataKeluar = JSON.parse(localStorage.getItem('keluarData')) || [];
+  const keluarSheet = dataKeluar.map((d, i) => [i + 1, d.Keterangan, d.Pemasukan, d.Pengeluaran]);
+  const rowKeluar = keluarSheet.length + 1;
+  keluarSheet.unshift(["No", "Keterangan", "Pemasukan", "Pengeluaran"]);
+  keluarSheet.push(["Total", "", { f: `SUM(C2:C${rowKeluar})` }, { f: `SUM(D2:D${rowKeluar})` }]);
+  const wsKeluar = XLSX.utils.aoa_to_sheet(keluarSheet);
+  XLSX.utils.book_append_sheet(wb, wsKeluar, 'Pengeluaran');
+
 
   XLSX.writeFile(wb, filename);
 }
@@ -246,6 +282,17 @@ function importDariExcel() {
       localStorage.setItem('tarikData', JSON.stringify(newTarik));
     }
 
+    if (workbook.SheetNames.includes('Pengeluaran')) {
+  const keluarSheet = XLSX.utils.sheet_to_json(workbook.Sheets['Pengeluaran'], { defval: '' });
+  const newKeluar = keluarSheet.slice(1, -1).map((row, i) => ({
+    Keterangan: row['Keterangan'],
+    Pemasukan: row['Pemasukan'],
+    Pengeluaran: row['Pengeluaran']
+  }));
+  localStorage.setItem('keluarData', JSON.stringify(newKeluar));
+}
+
+
     alert('Data berhasil diimpor!');
     loadData(); // Perbarui tampilan
   };
@@ -258,6 +305,7 @@ function hapusSemuaData() {
     localStorage.removeItem('pulsaData');
     localStorage.removeItem('tfData');
     localStorage.removeItem('tarikData');
+    localStorage.removeItem('keluarData');
     loadData(); // Reload tabel jadi kosong
     alert('Semua data berhasil dihapus.');
   }
