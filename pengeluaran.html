@@ -2,124 +2,144 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Catatan Keuangan Harian</title>
+  <title>Pengeluaran & Pemasukan</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f9f9f9;
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f2f2f2; }
+    input, select, button { margin: 5px; padding: 8px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background: #eee; }
+    .edit-btn, .delete-btn {
+      padding: 5px 10px;
+      cursor: pointer;
+      border: none;
+      margin: 0 2px;
     }
-    h2 {
-      color: #333;
-    }
-    input, select, button {
-      padding: 8px;
-      margin: 5px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
+    .edit-btn { background: #ff9800; color: white; }
+    .delete-btn { background: #f44336; color: white; }
+    .total-info {
       margin-top: 15px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-    }
-    .summary {
-      margin-top: 20px;
+      padding: 10px;
       background: #e0f7fa;
-      padding: 15px;
-      border-radius: 10px;
-    }
-    th {
-      background: #e0e0e0;
+      border-radius: 5px;
     }
   </style>
 </head>
 <body>
 
-<h2>Catatan Keuangan Harian</h2>
+<h2>Catatan Pengeluaran & Pemasukan</h2>
 
-<label>Jenis:</label>
 <select id="tipe">
   <option value="Pemasukan">Pemasukan</option>
   <option value="Pengeluaran">Pengeluaran</option>
 </select>
-
 <input type="text" id="keterangan" placeholder="Keterangan">
 <input type="number" id="jumlah" placeholder="Jumlah (Rp)">
-<button onclick="tambahTransaksi()">Tambah</button>
+<button onclick="tambahData()">Tambah</button>
 
-<table id="tabelTransaksi">
+<table id="tabelData">
   <thead>
-    <tr>
-      <th>Tanggal</th>
-      <th>Keterangan</th>
-      <th>Pemasukan</th>
-      <th>Pengeluaran</th>
-    </tr>
+    <tr><th>No</th><th>Keterangan</th><th>Pemasukan</th><th>Pengeluaran</th><th>Aksi</th></tr>
   </thead>
   <tbody></tbody>
 </table>
 
-<div class="summary">
+<div class="total-info">
   <p><strong>Total Pemasukan:</strong> Rp <span id="totalMasuk">0</span></p>
   <p><strong>Total Pengeluaran:</strong> Rp <span id="totalKeluar">0</span></p>
 </div>
 
 <script>
-  const tabelBody = document.querySelector("#tabelTransaksi tbody");
-  let data = JSON.parse(localStorage.getItem("transaksi")) || [];
+  let data = JSON.parse(localStorage.getItem("keluarData")) || [];
 
   function formatRupiah(angka) {
     return angka.toLocaleString("id-ID");
   }
 
   function render() {
-    tabelBody.innerHTML = "";
+    const tbody = document.querySelector("#tabelData tbody");
+    tbody.innerHTML = "";
+
     let totalMasuk = 0;
     let totalKeluar = 0;
 
-    data.forEach(item => {
+    data.forEach((item, index) => {
+      const pemasukan = parseFloat(item.Pemasukan) || 0;
+      const pengeluaran = parseFloat(item.Pengeluaran) || 0;
+
+      if (pemasukan) totalMasuk += pemasukan;
+      if (pengeluaran) totalKeluar += pengeluaran;
+
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${item.tanggal}</td>
-        <td>${item.keterangan}</td>
-        <td>${item.tipe === "Pemasukan" ? "Rp " + formatRupiah(item.jumlah) : ""}</td>
-        <td>${item.tipe === "Pengeluaran" ? "Rp " + formatRupiah(item.jumlah) : ""}</td>
+        <td>${index + 1}</td>
+        <td>${item.Keterangan}</td>
+        <td>${pemasukan ? "Rp " + formatRupiah(pemasukan) : ""}</td>
+        <td>${pengeluaran ? "Rp " + formatRupiah(pengeluaran) : ""}</td>
+        <td>
+          <button class="edit-btn" onclick="editData(${index})">Edit</button>
+          <button class="delete-btn" onclick="hapusData(${index})">Hapus</button>
+        </td>
       `;
-      tabelBody.appendChild(tr);
-
-      if (item.tipe === "Pemasukan") {
-        totalMasuk += item.jumlah;
-      } else {
-        totalKeluar += item.jumlah;
-      }
+      tbody.appendChild(tr);
     });
 
     document.getElementById("totalMasuk").innerText = formatRupiah(totalMasuk);
     document.getElementById("totalKeluar").innerText = formatRupiah(totalKeluar);
+
+    localStorage.setItem("keluarData", JSON.stringify(data));
   }
 
-  function tambahTransaksi() {
+  function tambahData() {
     const tipe = document.getElementById("tipe").value;
     const keterangan = document.getElementById("keterangan").value.trim();
-    const jumlah = parseInt(document.getElementById("jumlah").value);
-    const tanggal = new Date().toLocaleDateString("id-ID");
+    const jumlah = parseFloat(document.getElementById("jumlah").value);
 
     if (!keterangan || isNaN(jumlah)) {
-      alert("Lengkapi semua field!");
-      return;
+      return alert("Lengkapi keterangan dan jumlah!");
     }
 
-    data.push({ tipe, keterangan, jumlah, tanggal });
-    localStorage.setItem("transaksi", JSON.stringify(data));
+    const entry = {
+      No: data.length + 1,
+      Keterangan: keterangan,
+      Pemasukan: tipe === "Pemasukan" ? jumlah : "",
+      Pengeluaran: tipe === "Pengeluaran" ? jumlah : ""
+    };
+
+    data.push(entry);
     render();
 
     document.getElementById("keterangan").value = "";
     document.getElementById("jumlah").value = "";
+  }
+
+  function editData(index) {
+    const item = data[index];
+    const keterangan = prompt("Edit keterangan:", item.Keterangan);
+    if (keterangan === null) return;
+
+    const jumlah = prompt("Edit jumlah:", item.Pemasukan || item.Pengeluaran);
+    if (jumlah === null || isNaN(jumlah)) return;
+
+    const tipe = item.Pemasukan !== "" ? "Pemasukan" : "Pengeluaran";
+
+    data[index] = {
+      No: index + 1,
+      Keterangan: keterangan,
+      Pemasukan: tipe === "Pemasukan" ? parseFloat(jumlah) : "",
+      Pengeluaran: tipe === "Pengeluaran" ? parseFloat(jumlah) : ""
+    };
+
+    render();
+  }
+
+  function hapusData(index) {
+    if (!confirm("Yakin ingin menghapus data ini?")) return;
+    data.splice(index, 1);
+    data.forEach((d, i) => d.No = i + 1);
+    render();
   }
 
   render();
