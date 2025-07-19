@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Rekap Laci Format Baru</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background: #fff;
+      padding: 30px;
+    }
+    pre {
+      font-size: 18px;
+      line-height: 1.6;
+    }
+    input {
+      width: 150px;
+      font-size: 18px;
+      border: none;
+      border-bottom: 1px solid black;
+      text-align: right;
+    }
+    .btn {
+      margin-top: 20px;
+      font-size: 16px;
+      padding: 8px 20px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    .positif { color: green; font-weight: bold; }
+    .negatif { color: red; font-weight: bold; }
+    #tanggal {
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<div id="tanggal"></div>
+<h1>Totalan ADG CELL</h1>
+
+<pre id="rekapTeks">
+LACI   : <input type="text" id="laciInput" value="0" oninput="formatInput(this); simpanData()" />
+
+PULSA  : <span id="pulsaOutput">0</span>
+KASIR  : <input type="text" id="kasirInput" value="0" oninput="formatInput(this); simpanData()" />
+ACC    : <span id="accOutput">0</span>
+        -------------------------------
+TOTAL  : <span id="totalOutput">0</span>
+
+KELUAR : <span id="keluarOutput">0</span>
+        _______________________________
+
+HASIL  : <span id="hasilOutput">0</span>
+
+SISA   : <span id="sisaSelisih" class="">+0</span>
+</pre>
+
+<button class="btn" onclick="hitung()">Hitung Rekap</button>
+<button class="btn" onclick="exportExcel()">Ekspor Excel</button>
+<button class="btn" onclick="exportPDF()">Ekspor PDF</button>
+
+<script>
+function formatRupiah(num) {
+  return parseInt(num || 0).toLocaleString('id-ID');
+}
+
+function parseRupiah(str) {
+  return parseFloat((str || "0").replace(/\./g, '').replace(',', '.')) || 0;
+}
+
+function formatInput(input) {
+  const num = parseRupiah(input.value);
+  input.value = formatRupiah(num);
+}
+
+function simpanData() {
+  localStorage.setItem("rekapLaci", JSON.stringify({
+    kasir: document.getElementById('kasirInput').value,
+    laci: document.getElementById('laciInput').value,
+  }));
+}
+
+function muatData() {
+  const data = JSON.parse(localStorage.getItem("rekapLaci") || "{}");
+  if (data.kasir) document.getElementById("kasirInput").value = data.kasir;
+  if (data.laci) document.getElementById("laciInput").value = data.laci;
+}
+
+function hitung() {
+  const kasir = parseRupiah(document.getElementById('kasirInput').value);
+  const laci = parseRupiah(document.getElementById('laciInput').value);
+
+  const pulsaData = JSON.parse(localStorage.getItem('pulsaData')) || [];
+  const tfData = JSON.parse(localStorage.getItem('tfData')) || [];
+  const tarikData = JSON.parse(localStorage.getItem('tarikData')) || [];
+  const keluarData = JSON.parse(localStorage.getItem('keluarData')) || [];
+
+  const pulsaTotal = pulsaData.reduce((sum, d) => sum + parseFloat(d["Harga Jual"] || 0), 0);
+  const accTotal =
+    tfData.reduce((sum, d) => sum + parseFloat(d.Total || 0), 0) +
+    tarikData.reduce((sum, d) => sum + parseFloat(d.Admin || 0), 0) +
+    keluarData.reduce((sum, d) => sum + parseFloat(d.Pemasukan || 0), 0);
+  const keluarTotal =
+    tarikData.reduce((sum, d) => sum + parseFloat(d.Nominal || 0), 0) +
+    keluarData.reduce((sum, d) => sum + parseFloat(d.Pengeluaran || 0), 0);
+
+  const total = pulsaTotal + kasir + accTotal;
+  const hasil = total - keluarTotal;
+  const selisih = laci - hasil;
+  const sisaLabel = selisih === 0 ? "0" : (selisih > 0 ? `+${formatRupiah(selisih)}` : `-${formatRupiah(Math.abs(selisih))}`);
+
+  document.getElementById('pulsaOutput').innerText = formatRupiah(pulsaTotal);
+  document.getElementById('accOutput').innerText = formatRupiah(accTotal);
+  document.getElementById('keluarOutput').innerText = formatRupiah(keluarTotal);
+  document.getElementById('totalOutput').innerText = formatRupiah(total);
+  document.getElementById('hasilOutput').innerText = formatRupiah(hasil);
+
+  const sisaEl = document.getElementById('sisaSelisih');
+  sisaEl.innerText = sisaLabel;
+  sisaEl.className = selisih === 0 ? '' : (selisih > 0 ? 'positif' : 'negatif');
+}
+
+// Ekspor Excel
+function exportExcel() {
+  hitung();
+
+  const pulsa = document.getElementById('pulsaOutput').innerText;
+  const kasir = document.getElementById('kasirInput').value;
+  const acc = document.getElementById('accOutput').innerText;
+  const keluar = document.getElementById('keluarOutput').innerText;
+  const total = document.getElementById('totalOutput').innerText;
+  const hasil = document.getElementById('hasilOutput').innerText;
+  const laci = document.getElementById('laciInput').value;
+  const sisa = document.getElementById('sisaSelisih').innerText;
+  const tanggal = new Date().toLocaleDateString('id-ID');
+
+  const ws_data = [
+    [`Tanggal: ${tanggal}`],
+    [],
+    ['LACI', '', laci],
+    [],
+    ['PULSA', '', pulsa],
+    ['KASIR', '', kasir],
+    ['ACC', '', acc],
+    ['', '--------------------'],
+    ['TOTAL', '', total],
+    ['KELUAR', '', keluar],
+    ['', '____________________'],
+    ['HASIL',  '', hasil],
+    [],
+    ['SISA', '', '', sisa]
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet(ws_data);
+
+  // Set alignment ke kanan di kolom H (kolom index 7)
+  for (let i = 2; i < ws_data.length; i++) {
+    const cell = ws[XLSX.utils.encode_cell({r: i, c: 7})];
+    if (cell) {
+      cell.s = {
+        alignment: { horizontal: "right" },
+        font: { name: "Courier New", sz: 12 }
+      };
+    }
+  }
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Rekap Laci");
+
+  // Set lebar kolom agar seperti tampilan teks
+  ws['!cols'] = [
+    { wch: 10 }, { wch: 5 }, { wch: 5 }, { wch: 5 },
+    { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 20 }
+  ];
+
+  XLSX.writeFile(wb, "Perhitungan Final.xlsx");
+}
+
+
+// Ekspor PDF
+function exportPDF() {
+  hitung();
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const text = "Tanggal: " + new Date().toLocaleDateString('id-ID') + "\n\n" + document.getElementById("rekapTeks").innerText;
+  doc.setFont("Courier", "normal");
+  doc.setFontSize(14);
+  doc.text(text, 20, 20);
+  doc.save("Rekap_Laci.pdf");
+}
+
+// Tanggal otomatis
+document.getElementById("tanggal").innerText = "Tanggal: " + new Date().toLocaleDateString('id-ID');
+
+// Load data saat dibuka
+window.onload = () => {
+  muatData();
+  hitung();
+};
+</script>
+
+</body>
+</html>
