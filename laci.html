@@ -58,11 +58,14 @@ KELUAR : <span id="keluarOutput">0</span>
 HASIL  : <span id="hasilOutput">0</span>
 
 SISA   : <span id="sisaSelisih" class="">+0</span>
+MODAL  : <input type="number" id="modalInput" value="0" oninput="formatInput(this);
+  simpanData()" name=""/>
 </pre>
 
 <button class="btn" onclick="hitung()">Hitung Rekap</button>
 <button class="btn" onclick="exportExcel()">Ekspor Excel</button>
 <button class="btn" onclick="exportPDF()">Ekspor PDF</button>
+
 
 <script>
 function formatRupiah(num) {
@@ -82,6 +85,7 @@ function simpanData() {
   localStorage.setItem("rekapLaci", JSON.stringify({
     kasir: document.getElementById('kasirInput').value,
     laci: document.getElementById('laciInput').value,
+    modal: document.getElementById('modalInput').value,
   }));
 }
 
@@ -89,6 +93,7 @@ function muatData() {
   const data = JSON.parse(localStorage.getItem("rekapLaci") || "{}");
   if (data.kasir) document.getElementById("kasirInput").value = data.kasir;
   if (data.laci) document.getElementById("laciInput").value = data.laci;
+  if (data.modal) document.getElementById("modalInput").value = data.modal;
 }
 
 function hitung() {
@@ -137,6 +142,7 @@ function exportExcel() {
   const hasil = document.getElementById('hasilOutput').innerText;
   const laci = document.getElementById('laciInput').value;
   const sisa = document.getElementById('sisaSelisih').innerText;
+  const modal = document.getElementById('modalInput').value;
   const tanggal = new Date().toLocaleDateString('id-ID');
 
   const ws_data = [
@@ -147,13 +153,15 @@ function exportExcel() {
     ['PULSA', '', pulsa],
     ['KASIR', '', kasir],
     ['ACC', '', acc],
-    ['', '--------------------'],
+    ['', '-----------------------'],
     ['TOTAL', '', total],
     ['KELUAR', '', keluar],
     ['', '____________________'],
     ['HASIL',  '', hasil],
     [],
-    ['SISA', '', '', sisa]
+    ['SISA', '', '', sisa],
+    [],
+    ['MODAL', '', '', modal],
   ];
 
   const ws = XLSX.utils.aoa_to_sheet(ws_data);
@@ -186,10 +194,41 @@ function exportExcel() {
 function exportPDF() {
   hitung();
   const { jsPDF } = window.jspdf;
+
+  const tanggal = "Tanggal: " + new Date().toLocaleDateString('id-ID');
+  const laci = document.getElementById('laciInput').value;
+  const pulsa = document.getElementById('pulsaOutput').innerText;
+  const kasir = document.getElementById('kasirInput').value;
+  const acc = document.getElementById('accOutput').innerText;
+  const total = document.getElementById('totalOutput').innerText;
+  const keluar = document.getElementById('keluarOutput').innerText;
+  const hasil = document.getElementById('hasilOutput').innerText;
+  const sisa = document.getElementById('sisaSelisih').innerText;
+  const modal = document.getElementById('modalInput').value;
+
+  const text = `
+${tanggal}
+
+LACI   : ${laci}
+
+PULSA  : ${pulsa}
+KASIR  : ${kasir}
+ACC    : ${acc}
+        -------------------------------
+TOTAL  : ${total}
+
+KELUAR : ${keluar}
+        _______________________________
+
+HASIL  : ${hasil}
+
+SISA   : ${sisa}
+MODAL  : ${modal}
+`;
+
   const doc = new jsPDF();
-  const text = "Tanggal: " + new Date().toLocaleDateString('id-ID') + "\n\n" + document.getElementById("rekapTeks").innerText;
   doc.setFont("Courier", "normal");
-  doc.setFontSize(14);
+  doc.setFontSize(12);
   doc.text(text, 20, 20);
   doc.save("Rekap_Laci.pdf");
 }
