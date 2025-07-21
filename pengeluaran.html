@@ -41,7 +41,7 @@
 
 <table id="tabelData">
   <thead>
-    <tr><th>No</th><th>Keterangan</th><th>Pemasukan</th><th>Pengeluaran</th><th>Aksi</th></tr>
+    <tr><th>No</th><th>Keterangan</th><th>Pengeluaran</th><th>Pemasukan</th><th>Aksi</th></tr>
   </thead>
   <tbody></tbody>
 </table>
@@ -77,8 +77,8 @@
       tr.innerHTML = `
         <td>${index + 1}</td>
         <td>${item.Keterangan}</td>
-        <td>${pemasukan ? "Rp " + formatRupiah(pemasukan) : ""}</td>
         <td>${pengeluaran ? "Rp " + formatRupiah(pengeluaran) : ""}</td>
+        <td>${pemasukan ? "Rp " + formatRupiah(pemasukan) : ""}</td>
         <td>
           <button class="edit-btn" onclick="isiFormEdit(${index})">Edit</button>
           <button class="delete-btn" onclick="hapusData(${index})">Hapus</button>
@@ -87,8 +87,8 @@
       tbody.appendChild(tr);
     });
 
-    document.getElementById("totalMasuk").innerText = formatRupiah(totalMasuk);
     document.getElementById("totalKeluar").innerText = formatRupiah(totalKeluar);
+    document.getElementById("totalMasuk").innerText = formatRupiah(totalMasuk);
 
     localStorage.setItem("keluarData", JSON.stringify(data));
   }
