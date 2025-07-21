@@ -67,7 +67,7 @@
   <h3>Pengeluaran & Pemasukan</h3>
   <table id="tableKeluar">
     <thead>
-      <tr><th>No</th><th>Keterangan</th><th>Pemasukan</th><th>Pengeluaran</th></tr>
+      <tr><th>No</th><th>Keterangan</th><th>Pengeluaran</th><th>Pemasukan</th></tr>
     </thead>
     <tbody></tbody>
   </table>
@@ -139,7 +139,7 @@ function loadData() {
   tbodyKeluar.innerHTML = '';
   dataKeluar.forEach((d, i) => {
     tbodyKeluar.innerHTML += `<tr>
-      <td>${i + 1}</td><td>${d.Keterangan}</td><td>${d.Pemasukan || ""}</td><td>${d.Pengeluaran || ""}</td>
+      <td>${i + 1}</td><td>${d.Keterangan}</td><td>${d.Pengeluaran || ""}</td><td>${d.Pemasukan || ""}</td>
     </tr>`;
   });
   const totalPemasukan = dataKeluar.reduce((sum, d) => sum + parseFloat(d.Pemasukan || 0), 0);
