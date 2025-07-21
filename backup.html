@@ -202,9 +202,9 @@ function exportSemuaData() {
   const filename = `Transaksi (${yyyy}-${mm}-${dd}).xlsx`;
 
   const dataKeluar = JSON.parse(localStorage.getItem('keluarData')) || [];
-  const keluarSheet = dataKeluar.map((d, i) => [i + 1, d.Keterangan, d.Pemasukan, d.Pengeluaran]);
+  const keluarSheet = dataKeluar.map((d, i) => [i + 1, d.Keterangan, d.Pengeluaran, d.Pemasukan]);
   const rowKeluar = keluarSheet.length + 1;
-  keluarSheet.unshift(["No", "Keterangan", "Pemasukan", "Pengeluaran"]);
+  keluarSheet.unshift(["No", "Keterangan", "Pengeluaran", "Pemasukan"]);
   keluarSheet.push(["Total", "", { f: `SUM(C2:C${rowKeluar})` }, { f: `SUM(D2:D${rowKeluar})` }]);
   const wsKeluar = XLSX.utils.aoa_to_sheet(keluarSheet);
   XLSX.utils.book_append_sheet(wb, wsKeluar, 'Pengeluaran');
