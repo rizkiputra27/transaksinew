@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Laporan Transaksi Gabungan</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <link rel="stylesheet" href="style.css">
   <style>
@@ -90,6 +91,7 @@
 <input type="file" id="fileInput" accept=".xlsx" style="margin-top: 10px;" />
 <button onclick="importDariExcel()">📥 Impor dari Excel</button>
 <button onclick="hapusSemuaData()" style="background:#f44336; color:white; padding:10px 20px; border:none; margin-top:10px;">🗑️ Hapus Semua Data</button>
+<button onclick="backupKeDatabase()" style="background:#2196F3; color:white; padding:10px 20px; border:none; margin-top:10px;">📦 Backup ke database.html</button>
 
 <script>
 function showTab(id) {
@@ -310,6 +312,33 @@ function hapusSemuaData() {
     alert('Semua data berhasil dihapus.');
   }
 }
+function backupKeDatabase() {
+  const lama = JSON.parse(localStorage.getItem('databaseData')) || {
+    pulsaData: [],
+    tfData: [],
+    tarikData: [],
+    keluarData: []
+  };
+
+  const baru = {
+    pulsaData: JSON.parse(localStorage.getItem('pulsaData')) || [],
+    tfData: JSON.parse(localStorage.getItem('tfData')) || [],
+    tarikData: JSON.parse(localStorage.getItem('tarikData')) || [],
+    keluarData: JSON.parse(localStorage.getItem('keluarData')) || []
+  };
+
+  // Gabungkan data lama dan baru
+  const gabungan = {
+    pulsaData: [...lama.pulsaData, ...baru.pulsaData],
+    tfData: [...lama.tfData, ...baru.tfData],
+    tarikData: [...lama.tarikData, ...baru.tarikData],
+    keluarData: [...lama.keluarData, ...baru.keluarData]
+  };
+
+  localStorage.setItem('databaseData', JSON.stringify(gabungan));
+  alert('Data berhasil ditambahkan ke database.html!');
+}
+
 </script>
 
 </body>
