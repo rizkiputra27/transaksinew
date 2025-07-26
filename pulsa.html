@@ -5,6 +5,8 @@
   <title>Penjualan Pulsa</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     body { font-family: Arial; padding: 20px; background: #f4f4f4; }
     form { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 30px; }
@@ -97,7 +99,11 @@
 <div class="btn-group">
   <button onclick="exportToExcel()">📤 Download Excel (.xlsx)</button>
   <button class="btn-danger" onclick="hapusSemua()">🗑️ Hapus Semua Data</button>
+  <button onclick="tampilkanChartVia()">📊 Tampilkan Grafik VIA</button>
 </div>
+
+<canvas id="viaChart" style="max-width:600px; margin-top: 30px;"></canvas>
+
 
 <script>
   const form = document.getElementById('formPulsa');
@@ -268,6 +274,55 @@ document.getElementById('nohp').focus();
   // Inisialisasi saat halaman dimuat
   setTanggalHariIni();
   tampilkanData(data);
+
+  let chartInstance = null;
+
+function tampilkanChartVia() {
+  const viaCounts = {};
+
+  data.forEach(d => {
+    if (viaCounts[d.Via]) {
+      viaCounts[d.Via]++;
+    } else {
+      viaCounts[d.Via] = 1;
+    }
+  });
+
+  const labels = Object.keys(viaCounts);
+  const jumlah = Object.values(viaCounts);
+
+  const ctx = document.getElementById('viaChart').getContext('2d');
+
+  // Hapus chart lama kalau ada
+  if (chartInstance) {
+    chartInstance.destroy();
+  }
+
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Jumlah Transaksi per VIA',
+        data: jumlah,
+        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            precision:0
+          }
+        }
+      }
+    }
+  });
+}
 </script>
 
 </body>
