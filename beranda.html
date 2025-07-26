@@ -3,42 +3,271 @@
 <head>
   <meta charset="UTF-8">
   <title>Beranda Transaksi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/xlsx.mini.min.js"></script>
-  <link rel="stylesheet" href="style.css"></style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-day: #87CEEB;
+      --secondary-day: #00BFFF;
+      --primary-night: #001d3d;
+      --secondary-night: #003566;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      color: white;
+      min-height: 100vh;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(135deg, var(--primary-day), var(--secondary-day));
+      transition: background 1s;
+    }
+
+    /* Stars */
+    .stars span {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: white;
+      animation: twinkle 3s infinite ease-in-out;
+      z-index: 0;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.4); }
+    }
+
+    .stars { position: absolute; width: 100%; height: 100%; overflow: hidden; z-index: 0; }
+
+    /* Meteor */
+    .meteor {
+      position: absolute;
+      width: 100px;
+      height: 2px;
+      background: linear-gradient(-45deg, white, transparent);
+      opacity: 0.7;
+      transform: rotate(45deg);
+      animation: meteor-fall 2s linear infinite;
+      z-index: 1;
+    }
+
+    @keyframes meteor-fall {
+      0% { top: -50px; left: calc(100% * var(--start)); opacity: 1; }
+      100% { top: 100%; left: calc(100% * var(--start) + 200px); opacity: 0; }
+    }
+
+    /* Moon */
+    .moon {
+      position: absolute;
+      top: 40px;
+      right: 60px;
+      width: 80px;
+      height: 80px;
+      background: radial-gradient(circle at 30% 30%, #fdfdfd, #ccc);
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+      z-index: 1;
+    }
+
+    /* Glass card */
+    .glass-card {
+      position: relative;
+      z-index: 2;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      backdrop-filter: blur(16px);
+      padding: 40px;
+      max-width: 800px;
+      width: 90%;
+      margin: 60px auto;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      text-align: center;
+      animation: fadeSlide 1s ease;
+    }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .glass-card h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .glass-card p {
+      margin-top: 10px;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .menu-grid {
+      margin-top: 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 20px;
+    }
+
+    .menu-grid a {
+      background-color: rgba(255, 255, 255, 0.15);
+      color: white;
+      text-decoration: none;
+      padding: 20px 10px;
+      border-radius: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 15px;
+      transition: transform 0.3s ease, box-shadow 0.3s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      animation: scaleUp 0.5s ease forwards;
+      opacity: 0;
+    }
+
+    .menu-grid a i {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .menu-grid a:hover {
+      transform: scale(1.07) rotate(1deg);
+      box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
+    }
+
+    @keyframes scaleUp {
+      0% { transform: scale(0.7); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .menu-grid a:nth-child(1) { animation-delay: 0.2s; }
+    .menu-grid a:nth-child(2) { animation-delay: 0.4s; }
+    .menu-grid a:nth-child(3) { animation-delay: 0.6s; }
+    .menu-grid a:nth-child(4) { animation-delay: 0.8s; }
+    .menu-grid a:nth-child(5) { animation-delay: 1s; }
+    .menu-grid a:nth-child(6) { animation-delay: 1.2s; }
+    .menu-grid a:nth-child(7) { animation-delay: 1.4s; }
+
+    @media (max-width: 600px) {
+      .glass-card { padding: 25px; }
+      .glass-card h1 { font-size: 24px; }
+      .menu-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 15px;
+      }
+    }
+  .cloud {
+  position: absolute;
+  background: #fff;
+  border-radius: 50%;
+  opacity: 0.8;
+  animation: moveCloud 60s linear infinite;
+  z-index: 1;
+}
+
+@keyframes moveCloud {
+  0% { transform: translateX(-200px); }
+  100% { transform: translateX(120vw); }
+}
+#sun {
+  position: absolute;
+  top: 80px;
+  right: 80px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, #ffeb3b, #fbc02d);
+  box-shadow: 0 0 40px #ffeb3b;
+  animation: rotateSun 20s linear infinite;
+  display: none;
+  z-index: 0;
+}
+
+@keyframes rotateSun {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>📊 Beranda Catatan Transaksi</h1>
-    <h1>ADG CELL</h1>
-    <p>Setelah selesai menginput seluruh data <b>WAJIB</b> menekan tombol backup di sebelah kanan tombol hapus data untuk menyimpan data ke database.</p>
-    <p>Pastikan telah mem Backup data sebelum <b>menghapus</b>.</p>
-    </p>
-    <div class="link-group">
-      <a href="pulsa.html">📱 Penjualan Pulsa</a>
-      <a href="tf.html">🏦 Transfer Bank</a>
-      <a href="tartun.html">💵 Tarik Tunai</a>
-      <a href="pengeluaran.html">💵 Pengeluaran</a>
-      <a href="backup.html">🏦 Ekspor Excel</a>
-      <a href="laci.html">📱Hasil Akhir</a>
-      <a href="database.html">🏦 DataBase Transaksi</a>
+  <div id="stars" class="stars"></div>
+  <div id="moon" class="moon" style="display:none;"></div>
+
+  <div class="glass-card">
+    <h1>📊 ADG CELL</h1>
+    <h1>Beranda Transaksi</h1>
+    <p><b>WAJIB:</b> Setelah input, tekan tombol <b>Backup</b> sebelum menghapus data.</p>
+
+    <div class="menu-grid">
+      <a href="pulsa.html"><i class="fas fa-mobile-alt"></i>Pulsa</a>
+      <a href="tf.html"><i class="fas fa-university"></i>Transfer</a>
+      <a href="tartun.html"><i class="fas fa-hand-holding-usd"></i>Tarik Tunai</a>
+      <a href="pengeluaran.html"><i class="fas fa-money-bill-wave"></i>Pengeluaran</a>
+      <a href="backup.html"><i class="fas fa-file-export"></i>Backup Excel</a>
+      <a href="laci.html"><i class="fas fa-chart-pie"></i>Hasil Akhir</a>
+      <a href="database.html"><i class="fas fa-database"></i>Database</a>
     </div>
-
   </div>
-<script>
-function exportToExcel() {
-  const wb = XLSX.utils.book_new();
+  <div id="clouds-container"></div>
+  <div id="sun"></div>
 
-  const pulsaWS = XLSX.utils.table_to_sheet(document.getElementById('pulsaTable'));
-  const tfWS = XLSX.utils.table_to_sheet(document.getElementById('tfTable'));
-  const tarikWS = XLSX.utils.table_to_sheet(document.getElementById('tarikTable'));
 
-  XLSX.utils.book_append_sheet(wb, pulsaWS, 'Pulsa');
-  XLSX.utils.book_append_sheet(wb, tfWS, 'Transfer');
-  XLSX.utils.book_append_sheet(wb, tarikWS, 'TarikTunai');
+  <script>
+  const starsContainer = document.getElementById('stars');
+  const moon = document.getElementById('moon');
+  const cloudsContainer = document.getElementById('clouds-container');
+  const body = document.body;
+  const hour = new Date().getHours();
+  const isNight = hour >= 18 || hour < 6;
 
-  XLSX.writeFile(wb, 'Laporan_Transaksi_ADG.xlsx');
-}
+  if (isNight) {
+    // 🌙 Mode malam
+    body.style.background = 'linear-gradient(135deg, var(--primary-night), var(--secondary-night))';
+    moon.style.display = 'block';
+
+    // Bintang
+    for (let i = 0; i < 60; i++) {
+      const star = document.createElement('span');
+      star.style.top = `${Math.random() * 100}%`;
+      star.style.left = `${Math.random() * 100}%`;
+      star.style.animationDuration = `${2 + Math.random() * 3}s`;
+      starsContainer.appendChild(star);
+    }
+
+    // Meteor jatuh
+    setInterval(() => {
+      const meteor = document.createElement('div');
+      meteor.classList.add('meteor');
+      meteor.style.setProperty('--start', Math.random().toFixed(2));
+      document.body.appendChild(meteor);
+      setTimeout(() => meteor.remove(), 2000);
+    }, 2500);
+
+  } else {
+    // ☀️ Mode siang
+    body.style.background = 'linear-gradient(135deg, var(--primary-day), var(--secondary-day))';
+    document.getElementById('sun').style.display = 'block';
+
+    // Awan bergerak
+    for (let i = 0; i < 5; i++) {
+      const cloud = document.createElement('div');
+      cloud.classList.add('cloud');
+      const size = 40 + Math.random() * 60;
+      cloud.style.width = `${size}px`;
+      cloud.style.height = `${size * 0.6}px`;
+      cloud.style.top = `${10 + Math.random() * 30}%`;
+      cloud.style.left = `${-200 - Math.random() * 500}px`;
+      cloud.style.animationDuration = `${40 + Math.random() * 40}s`;
+      cloudsContainer.appendChild(cloud);
+    }
+  }
 </script>
-
 </body>
 </html>
